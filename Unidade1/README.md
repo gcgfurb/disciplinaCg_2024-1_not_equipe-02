@@ -2,4 +2,4 @@
 
 ## Assunto: Animação
 
-[Equipe-01.pdf](Equipe-01.pdf)
+[Slides.pdf](Slides.pdf)
