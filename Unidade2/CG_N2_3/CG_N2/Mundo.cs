@@ -1,7 +1,8 @@
-﻿#define CG_Gizmo 
-#define CG_OpenGL 
-// #define CG_DirectX
-// #define CG_Privado 
+﻿//TODO: testar se estes DEFINEs continuam funcionado
+#define CG_Gizmo  // debugar gráfico.
+#define CG_OpenGL // render OpenGL.
+// #define CG_DirectX // render DirectX.
+// #define CG_Privado // código do professor.
 
 using CG_Biblioteca;
 using OpenTK.Graphics.OpenGL4;
@@ -19,12 +20,12 @@ namespace gcgcg
         private static Objeto mundo = null;
 
         private char rotuloAtual = '?';
-        private Objeto objetoSelecionado = null;
+        private SrPalito objetoSelecionado = null;
 
         private readonly float[] _sruEixos =
         {
             -0.5f,  0.0f,  0.0f, /* X- */      0.5f,  0.0f,  0.0f, /* X+ */
-            0.0f, 0.5f,  0.0f, /* Y- */      0.0f,  -0.5f,  0.0f, /* Y+ */
+            0.0f, -0.5f,  0.0f, /* Y- */      0.0f,  0.5f,  0.0f, /* Y+ */
             0.0f,  0.0f, -0.5f, /* Z- */      0.0f,  0.0f,  0.5f, /* Z+ */
         };
 
@@ -35,18 +36,14 @@ namespace gcgcg
         private Shader _shaderVerde;
         private Shader _shaderAzul;
 
-        private int index = 0;
-
         private bool mouseMovtoPrimeiro = true;
-
-        private PrimitiveType[] primitivas = [];
-        
         private Ponto4D mouseMovtoUltimo;
+        private double tamanhoReta = 0.0;
 
         public Mundo(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
                : base(gameWindowSettings, nativeWindowSettings)
         {
-            mundo ??= new Objeto(null, ref rotuloAtual); //padrão Singleton
+            mundo ??= new SrPalito(null, ref rotuloAtual); //padrão Singleton
         }
 
         protected override void OnLoad()
@@ -67,13 +64,9 @@ namespace gcgcg
             _shaderVerde = new Shader("Shaders/shader.vert", "Shaders/shaderVerde.frag");
             _shaderAzul = new Shader("Shaders/shader.vert", "Shaders/shaderAzul.frag");
             #endregion
-            primitivas = [PrimitiveType.Points, PrimitiveType.Lines, 
-                PrimitiveType.LineLoop, PrimitiveType.LineStrip, PrimitiveType.Triangles,
-                PrimitiveType.TriangleStrip, PrimitiveType.TriangleFan];
 
-            objetoSelecionado = new Retangulo(mundo, ref rotuloAtual, new Ponto4D(-0.5, 0.5), new Ponto4D(0.5, -0.5));
-            objetoSelecionado.PrimitivaTipo = primitivas[index];
-            index++;
+            objetoSelecionado = new SrPalito(mundo, ref rotuloAtual);
+            tamanhoReta = Matematica.distancia(objetoSelecionado.PontosId(0), objetoSelecionado.PontosId(1));
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
@@ -92,7 +85,7 @@ namespace gcgcg
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             base.OnUpdateFrame(e);
-            
+
             #region Teclado
             var input = KeyboardState;
             if (input.IsKeyPressed(Keys.Escape))
@@ -101,36 +94,26 @@ namespace gcgcg
             }
             else
             {
-                if (input.IsKeyPressed(Keys.Right))
-                {
-                    objetoSelecionado.PontosAlterar(new Ponto4D(objetoSelecionado.PontosId(0).X + 0.005, objetoSelecionado.PontosId(0).Y, 0), 0);
-                    objetoSelecionado.ObjetoAtualizar();
+                Ponto4D origem = objetoSelecionado.PontosId(0);
+                Ponto4D fim = objetoSelecionado.PontosId(1);
+
+                if (input.IsKeyPressed(Keys.Q)) {
+                    objetoSelecionado.moverEsquerda();
+                } 
+                if (input.IsKeyPressed(Keys.W)) {
+                    objetoSelecionado.moverDireita();
                 }
-                else
-                {
-                    if (input.IsKeyPressed(Keys.P))
-                    {
-                        Console.WriteLine(objetoSelecionado);
-                    }
-                    else
-                    {
-                        if (input.IsKeyPressed(Keys.Space))
-                        {
-                            if (index == primitivas.Length) {
-                                index = 0;
-                            }
-                            objetoSelecionado.PrimitivaTipo = primitivas[index];
-                            index++;
-                            Console.WriteLine(objetoSelecionado.ToString());
-                        }
-                        else
-                        {
-                            if (input.IsKeyPressed(Keys.C))
-                            {
-                                objetoSelecionado.shaderObjeto = new Shader("Shaders/shader.vert", "Shaders/shaderCiano.frag");
-                            }
-                        }
-                    }
+                if (input.IsKeyPressed(Keys.A)) {
+                    objetoSelecionado.diminuir();
+                }
+                if (input.IsKeyPressed(Keys.S)) {
+                    objetoSelecionado.aumentar();
+                }
+                if (input.IsKeyPressed(Keys.Z)) {
+                    objetoSelecionado.diminuirAngulo();
+                }
+                if (input.IsKeyPressed(Keys.X)) {
+                    objetoSelecionado.aumentarAngulo();
                 }
             }
             #endregion
@@ -141,6 +124,7 @@ namespace gcgcg
             Ponto4D mousePonto = new Ponto4D(MousePosition.X, MousePosition.Y);
             Ponto4D sruPonto = Utilitario.NDC_TelaSRU(janelaLargura, janelaAltura, mousePonto);
 
+            //FIXME: o movimento do mouse em relação ao eixo X está certo. Mas tem um erro no eixo Y,,, aumentar o valor do Y aumenta o erro.
             if (input.IsKeyDown(Keys.LeftShift))
             {
                 if (mouseMovtoPrimeiro)
@@ -203,9 +187,6 @@ namespace gcgcg
             // EixoY
             _shaderVerde.Use();
             GL.DrawArrays(PrimitiveType.Lines, 2, 2);
-            // EixoZ
-            _shaderAzul.Use();
-            GL.DrawArrays(PrimitiveType.Lines, 4, 2);
 #elif CG_DirectX && !CG_OpenGL
       Console.WriteLine(" .. Coloque aqui o seu código em DirectX");
 #elif (CG_DirectX && CG_OpenGL) || (!CG_DirectX && !CG_OpenGL)

@@ -17,13 +17,15 @@ namespace gcgcg
         {
             0.0f,  0.0f,  0.0f, /* X- */      0.5f,  0.0f,  0.0f, /* X+ */
             0.0f,  0.0f,  0.0f, /* Y- */      0.0f,  0.5f,  0.0f, /* Y+ */
-            0.0f,  0.0f, -0.5f, /* Z- */      0.0f,  0.0f,  0.5f, /* Z+ */
+            0.0f,  0.0f, -0.5f, /* Z- */      0.0f,  0.0f,  0.0f, /* Z+ */
         };
         private int _vertexBufferObject_sruEixos;
         private int _vertexArrayObject_sruEixos;
-
+        // objeto que armazena a linha vermelha
         private Shader _shaderVermelha;
+        // objeto que armazena a linha verde
         private Shader _shaderVerde;
+        // objeto que armazena a linha azul (inexistente nesse exercício)
         private Shader _shaderAzul;
 
         public WindowCirculo(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
@@ -42,7 +44,6 @@ namespace gcgcg
             // aqui define as retas do plano
             #region Eixos: SRU  
 
-            // ????
             _vertexBufferObject_sruEixos = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject_sruEixos);
             GL.BufferData(BufferTarget.ArrayBuffer, _sruEixos.Length * sizeof(float), _sruEixos, BufferUsageHint.StaticDraw);
@@ -55,19 +56,6 @@ namespace gcgcg
             _shaderVerde = new Shader("Shaders/shader.vert", "Shaders/shaderVerde.frag");
             _shaderAzul = new Shader("Shaders/shader.vert", "Shaders/shaderAzul.frag");
             #endregion
-        }
-
-        // Chamado automaticamente pelo OpenTK
-        // Atualiza a lógica do programa
-        protected override void OnUpdateFrame(FrameEventArgs e)
-        {
-            if (KeyboardState.IsKeyDown(Keys.Escape))
-            {
-                Close();
-                circulo.Atualizar();
-            }
-
-            base.OnUpdateFrame(e);
         }
 
         // Desenha o conteúdo na janela (o círculo e as linhas)
