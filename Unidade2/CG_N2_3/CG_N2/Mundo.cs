@@ -1,31 +1,22 @@
-﻿//TODO: testar se estes DEFINEs continuam funcionado
-#define CG_Gizmo  // debugar gráfico.
-#define CG_OpenGL // render OpenGL.
-// #define CG_DirectX // render DirectX.
-// #define CG_Privado // código do professor.
-
-using CG_Biblioteca;
+﻿using CG_Biblioteca;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
-using System.Collections.Generic;
-// using OpenTK.Mathematics;
 
 namespace gcgcg
 {
     public class Mundo : GameWindow
     {
         private static Objeto mundo = null;
-
         private char rotuloAtual = '?';
-        private SrPalito objetoSelecionado = null;
+        private SrPalito srPalito;
 
         private readonly float[] _sruEixos =
         {
-            -0.5f,  0.0f,  0.0f, /* X- */      0.5f,  0.0f,  0.0f, /* X+ */
-            0.0f, -0.5f,  0.0f, /* Y- */      0.0f,  0.5f,  0.0f, /* Y+ */
+            -0.0f,  0.0f,  0.0f, /* X- */      0.5f,  0.0f,  0.0f, /* X+ */
+            0.0f, -0.0f,  0.0f, /* Y- */      0.0f,  0.5f,  0.0f, /* Y+ */
             0.0f,  0.0f, -0.5f, /* Z- */      0.0f,  0.0f,  0.5f, /* Z+ */
         };
 
@@ -36,21 +27,15 @@ namespace gcgcg
         private Shader _shaderVerde;
         private Shader _shaderAzul;
 
-        private bool mouseMovtoPrimeiro = true;
-        private Ponto4D mouseMovtoUltimo;
-        private double tamanhoReta = 0.0;
-
         public Mundo(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
                : base(gameWindowSettings, nativeWindowSettings)
         {
-            mundo ??= new SrPalito(null, ref rotuloAtual); //padrão Singleton
+            mundo ??= new Objeto(null, ref rotuloAtual); // padrão Singleton
         }
 
         protected override void OnLoad()
         {
             base.OnLoad();
-
-            GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
             #region Eixos: SRU  
             _vertexBufferObject_sruEixos = GL.GenBuffer();
@@ -65,8 +50,9 @@ namespace gcgcg
             _shaderAzul = new Shader("Shaders/shader.vert", "Shaders/shaderAzul.frag");
             #endregion
 
-            objetoSelecionado = new SrPalito(mundo, ref rotuloAtual);
-            tamanhoReta = Matematica.distancia(objetoSelecionado.PontosId(0), objetoSelecionado.PontosId(1));
+            #region Objeto: SrPalito  
+            srPalito = new SrPalito(mundo, rotuloAtual);
+            #endregion
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
@@ -75,9 +61,8 @@ namespace gcgcg
 
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
-#if CG_Gizmo
             Sru3D();
-#endif
+
             mundo.Desenhar();
             SwapBuffers();
         }
@@ -86,69 +71,32 @@ namespace gcgcg
         {
             base.OnUpdateFrame(e);
 
-            #region Teclado
             var input = KeyboardState;
-            if (input.IsKeyPressed(Keys.Escape))
+
+            if (input.IsKeyPressed(Keys.Q))
             {
-                Close();
+                srPalito.diminuirPosicaoX();
             }
-            else
+            if (input.IsKeyPressed(Keys.W))
             {
-                Ponto4D origem = objetoSelecionado.PontosId(0);
-                Ponto4D fim = objetoSelecionado.PontosId(1);
-
-                if (input.IsKeyPressed(Keys.Q)) {
-                    objetoSelecionado.moverEsquerda();
-                } 
-                if (input.IsKeyPressed(Keys.W)) {
-                    objetoSelecionado.moverDireita();
-                }
-                if (input.IsKeyPressed(Keys.A)) {
-                    objetoSelecionado.diminuir();
-                }
-                if (input.IsKeyPressed(Keys.S)) {
-                    objetoSelecionado.aumentar();
-                }
-                if (input.IsKeyPressed(Keys.Z)) {
-                    objetoSelecionado.diminuirAngulo();
-                }
-                if (input.IsKeyPressed(Keys.X)) {
-                    objetoSelecionado.aumentarAngulo();
-                }
+                srPalito.aumentarPosicaoX();
             }
-            #endregion
-
-            #region  Mouse
-            int janelaLargura = Size.X;
-            int janelaAltura = Size.Y;
-            Ponto4D mousePonto = new Ponto4D(MousePosition.X, MousePosition.Y);
-            Ponto4D sruPonto = Utilitario.NDC_TelaSRU(janelaLargura, janelaAltura, mousePonto);
-
-            //FIXME: o movimento do mouse em relação ao eixo X está certo. Mas tem um erro no eixo Y,,, aumentar o valor do Y aumenta o erro.
-            if (input.IsKeyDown(Keys.LeftShift))
+            if (input.IsKeyPressed(Keys.A))
             {
-                if (mouseMovtoPrimeiro)
-                {
-                    mouseMovtoUltimo = sruPonto;
-                    mouseMovtoPrimeiro = false;
-                }
-                else
-                {
-                    var deltaX = sruPonto.X - mouseMovtoUltimo.X;
-                    var deltaY = sruPonto.Y - mouseMovtoUltimo.Y;
-                    mouseMovtoUltimo = sruPonto;
-
-                    objetoSelecionado.PontosAlterar(new Ponto4D(objetoSelecionado.PontosId(0).X + deltaX, objetoSelecionado.PontosId(0).Y + deltaY, 0), 0);
-                    objetoSelecionado.ObjetoAtualizar();
-                }
+                srPalito.diminuirRaio();
             }
-            if (input.IsKeyDown(Keys.LeftShift))
+            if (input.IsKeyPressed(Keys.S))
             {
-                objetoSelecionado.PontosAlterar(sruPonto, 0);
-                objetoSelecionado.ObjetoAtualizar();
+                srPalito.aumentarRaio();
             }
-            #endregion
-
+            if (input.IsKeyPressed(Keys.Z))
+            {
+                srPalito.diminuirAngulo();
+            }
+            if (input.IsKeyPressed(Keys.X))
+            {
+                srPalito.aumentarAngulo();
+            }
         }
 
         protected override void OnResize(ResizeEventArgs e)
@@ -176,10 +124,8 @@ namespace gcgcg
             base.OnUnload();
         }
 
-#if CG_Gizmo
         private void Sru3D()
         {
-#if CG_OpenGL && !CG_DirectX
             GL.BindVertexArray(_vertexArrayObject_sruEixos);
             // EixoX
             _shaderVermelha.Use();
@@ -187,13 +133,9 @@ namespace gcgcg
             // EixoY
             _shaderVerde.Use();
             GL.DrawArrays(PrimitiveType.Lines, 2, 2);
-#elif CG_DirectX && !CG_OpenGL
-      Console.WriteLine(" .. Coloque aqui o seu código em DirectX");
-#elif (CG_DirectX && CG_OpenGL) || (!CG_DirectX && !CG_OpenGL)
-      Console.WriteLine(" .. ERRO de Render - escolha OpenGL ou DirectX !!");
-#endif
+            // EixoZ
+            _shaderAzul.Use();
+            GL.DrawArrays(PrimitiveType.Lines, 4, 2);
         }
-#endif
-
     }
 }

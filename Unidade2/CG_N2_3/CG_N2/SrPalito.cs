@@ -1,33 +1,69 @@
-#define CG_Gizmo  // debugar gráfico.
-#define CG_OpenGL // render OpenGL.
-
 using CG_Biblioteca;
 using OpenTK.Graphics.OpenGL4;
 
 namespace gcgcg
 {
-    internal class SrPalito: Objeto {
+    internal class SrPalito : Objeto
+    {
+        double raio = 0.5;
+        double angulo = 45;
+        double posicaoX = 0;
+        double posicaoY = 0;
 
-        private double posicao = 0;
-        private double angulo = 45;
-        private double tamanhoReta = 0.5; // Valor inicial
-        private Ponto4D pontoInicial;
-        private Ponto4D pontoFim;
-
-        public SrPalito(Objeto _paiRef, ref char _rotulo) : this(_paiRef, ref _rotulo, new Ponto4D(0.0, 0.0))
-        {
-
-        }
-
-        public SrPalito(Objeto _paiRef, ref char _rotulo, Ponto4D inicio) : base(_paiRef, ref _rotulo)
+        public SrPalito(Objeto _paiRef, char _rotulo) : base(_paiRef, ref _rotulo)
         {
             PrimitivaTipo = PrimitiveType.Lines;
-            PrimitivaTamanho = 3;
+            PrimitivaTamanho = 2;
+            AtualizarFrames();
+        }
 
-            PontosAdicionar(inicio);
-            PontosAdicionar(new Ponto4D(inicio.X + tamanhoReta, inicio.Y));
-
+        public void AtualizarFrames()
+        {
+            // toda vez é necessário limpar para renderizar o quadro atualizado
+            pontosLista.Clear();
+            // gera novos pontos para o frame
+            Ponto4D pontoInicial = Matematica.GerarPtosCirculo(angulo, raio);
+            // atualiza as coordenadas do ponto inicial e adiciona no frame
+            pontoInicial.X += posicaoX;
+            pontoInicial.Y += posicaoY;
+            PontosAdicionar(new Ponto4D(posicaoX, posicaoY));
+            PontosAdicionar(pontoInicial);
             ObjetoAtualizar();
+        }
+
+        public void diminuirPosicaoX() {
+            posicaoX = posicaoX - 0.1;
+            AtualizarFrames();
+        }
+
+        public void aumentarPosicaoX()
+        {
+            posicaoX = posicaoX + 0.1;
+            AtualizarFrames();
+        }
+
+        public void diminuirRaio()
+        {
+            raio = raio - 0.1;
+            AtualizarFrames();
+        }
+
+        public void aumentarRaio()
+        {
+            raio = raio + 0.1;
+            AtualizarFrames();
+        }
+
+        public void diminuirAngulo()
+        {
+            angulo = angulo - 1;
+            AtualizarFrames();
+        }
+
+        public void aumentarAngulo()
+        {
+            angulo = angulo + 1;
+            AtualizarFrames();
         }
 
 #if CG_Debug
@@ -39,56 +75,6 @@ namespace gcgcg
             return (retorno);
         }
 #endif
-
-        public void moverEsquerda() {
-            pontoInicial = base.PontosId(0);
-            pontoFim = base.PontosId(1);
-            posicao = posicao - 0.5;
-            base.PontosAlterar(new Ponto4D(posicao, pontoInicial.Y), 0);
-            base.PontosAlterar(new Ponto4D(pontoFim.X - 0.5, pontoFim.Y), 1);
-        }
-
-        public void moverDireita() {
-            pontoInicial = base.PontosId(0);
-            pontoFim = base.PontosId(1);
-            posicao = posicao + 0.5;
-            base.PontosAlterar(new Ponto4D(posicao, pontoInicial.Y), 0);
-            base.PontosAlterar(new Ponto4D(pontoFim.X + 0.5, pontoFim.Y), 1);
-        }
-
-        public void diminuir() {
-            pontoInicial = base.PontosId(0);
-            pontoFim = base.PontosId(1);
-            tamanhoReta = tamanhoReta - 0.5;
-            
-            Ponto4D novoPonto = Matematica.GerarPtosCirculo(angulo, tamanhoReta);
-            novoPonto.X = novoPonto.X + posicao;
-            base.PontosAlterar(novoPonto, 1);
-        }
-
-        public void aumentar() {
-            pontoInicial = base.PontosId(0);
-            pontoFim = base.PontosId(1);
-
-            tamanhoReta = tamanhoReta + 0.5;
-            Ponto4D novoPonto = Matematica.GerarPtosCirculo(angulo, tamanhoReta);
-            novoPonto.X = novoPonto.X + posicao;
-            base.PontosAlterar(novoPonto, 1);
-        }
-
-        public void diminuirAngulo() {
-            angulo = angulo - 5;
-            Ponto4D novoPonto = Matematica.GerarPtosCirculo(angulo, tamanhoReta);
-            novoPonto.X = novoPonto.X + posicao;
-            base.PontosAlterar(novoPonto, 1);
-        }
-
-        public void aumentarAngulo() {
-            angulo = angulo + 5;
-            Ponto4D novoPonto = Matematica.GerarPtosCirculo(angulo, tamanhoReta);
-            novoPonto.X = novoPonto.X + posicao;
-            base.PontosAlterar(novoPonto, 1);
-        }
-        
     }
 }
+
