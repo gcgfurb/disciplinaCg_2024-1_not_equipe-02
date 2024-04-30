@@ -31,6 +31,8 @@ namespace gcgcg
         private Shader _shaderCiano;
         private Objeto objetoSelecionado = null;
 
+        private int index = 0;
+
         public Mundo(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
                : base(gameWindowSettings, nativeWindowSettings)
         {
@@ -60,13 +62,8 @@ namespace gcgcg
             #region Objeto: Spline  
             spline = new Spline(mundo, ref rotuloAtual);
             #endregion
-            spline.shaderObjeto = _shaderAmarela;
-            spline.segReta1.shaderObjeto = _shaderCiano;
-            spline.segReta2.shaderObjeto = _shaderCiano;
-            spline.segReta3.shaderObjeto = _shaderCiano;
-
-            objetoSelecionado = spline.pontoControle1;
-            objetoSelecionado.shaderObjeto = _shaderVermelha;
+            
+            
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
@@ -83,33 +80,46 @@ namespace gcgcg
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            base.OnUpdateFrame(e);
+            base.OnUpdateFrame(e); 
 
             var input = KeyboardState;
 
             if (input.IsKeyPressed(Keys.Space)) {
-                spline.selecionaPontoVermelho(objetoSelecionado);
                 spline.vinculoObjeto();
+                spline.selecionaPontoVermelho();
             } 
-            if(input.IsKeyPressed(Keys.C)){ //cima
-                spline.adicionarY();
-                spline.atualizarSpline();
- 
-            }
-            if(input.IsKeyPressed(Keys.B)){ //baixo
-                spline.diminuirY();
-                spline.atualizarSpline(); 
-
-            }
-            if(input.IsKeyPressed(Keys.D)){ //direita
-                spline.adicionarX();
-                spline.atualizarSpline(); 
-            }
-            if(input.IsKeyPressed(Keys.E)){ //esquerda
-                spline.diminuirX();
-                spline.atualizarSpline(); 
-            }                                    
             
+            if (input.IsKeyPressed(Keys.C)) { //direita
+                spline.adicionarY();
+                atualizarSegRetas();
+                spline.atualizarSpline();
+            }
+
+            if (input.IsKeyPressed(Keys.B)) { //direita
+                spline.diminuirY();
+                atualizarSegRetas();
+                spline.atualizarSpline();
+            }
+
+            if (input.IsKeyPressed(Keys.D)) { //direita
+                spline.adicionarX();
+                atualizarSegRetas();
+                spline.atualizarSpline();
+            }
+
+            if (input.IsKeyPressed(Keys.E)) { //esquerda
+                spline.diminuirX();
+                atualizarSegRetas();
+                spline.atualizarSpline();
+            }
+                             
+        }
+
+        private void atualizarSegRetas() {
+            spline.segReta1.ObjetoAtualizar();
+            spline.segReta2.ObjetoAtualizar();
+            spline.segReta3.ObjetoAtualizar();
+            spline.pontos[spline.indice].Atualizar();
         }
 
         protected override void OnResize(ResizeEventArgs e)
