@@ -44,6 +44,8 @@ namespace gcgcg {
             segReta2.shaderObjeto = _shaderCiano;
             segReta3.shaderObjeto = _shaderCiano;
 
+            shaderObjeto = _shaderAmarela;
+
             // segReta1 = new SegReta(_paiRef, ref _rotulo, pontoControle2.PontosId(0), pontoControle3.PontosId(0));
             // segReta2 = new SegReta(_paiRef, ref _rotulo,  pontoControle4.PontosId(0), pontoControle3.PontosId(0));
             // segReta3 = new SegReta(_paiRef, ref _rotulo, pontoControle2.PontosId(0), pontoControle1.PontosId(0));
