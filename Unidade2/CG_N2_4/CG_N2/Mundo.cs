@@ -112,7 +112,18 @@ namespace gcgcg
                 atualizarSegRetas();
                 spline.atualizarSpline();
             }
-                             
+
+            if (input.IsKeyPressed(Keys.KeyPadAdd)) {
+                spline.adicionarValorT();
+                atualizarSegRetas();
+                spline.atualizarSpline();
+            }
+ 
+            if (input.IsKeyPressed(Keys.Comma)) {
+                spline.decrementarValorT();
+                spline.atualizarSpline();
+                atualizarSegRetas();
+            }                            
         }
 
         private void atualizarSegRetas() {

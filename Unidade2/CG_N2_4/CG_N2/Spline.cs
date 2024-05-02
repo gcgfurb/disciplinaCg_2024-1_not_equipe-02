@@ -19,6 +19,8 @@ namespace gcgcg {
         private List<Ponto4D> lista = new List<Ponto4D>(); 
         public int indice = 0;
         public Ponto[] pontos = new Ponto[4];
+        private int min = 1;
+        private int max = 10;
         
         public Spline(Objeto _paiRef, ref char _rotulo) : base(_paiRef, ref _rotulo)
         {
@@ -46,18 +48,17 @@ namespace gcgcg {
 
             shaderObjeto = _shaderAmarela;
 
-            // segReta1 = new SegReta(_paiRef, ref _rotulo, pontoControle2.PontosId(0), pontoControle3.PontosId(0));
-            // segReta2 = new SegReta(_paiRef, ref _rotulo,  pontoControle4.PontosId(0), pontoControle3.PontosId(0));
-            // segReta3 = new SegReta(_paiRef, ref _rotulo, pontoControle2.PontosId(0), pontoControle1.PontosId(0));
             selecionaPontoVermelho();
             atualizarSpline();
             
         }
 
         public void SplineQtdPto() {
-            double inc = 0.0;
-            
-            while (inc < 1) {
+
+            lista.Add(pontos[3].PontosId(0));         
+            for (int i = min; i < max; i++) {
+                double inc = i / 10.0;
+
                 double ABX = pontos[3].PontosId(0).X + (pontos[2].PontosId(0).X - pontos[3].PontosId(0).X) * inc;
                 double ABY = pontos[3].PontosId(0).Y + (pontos[2].PontosId(0).Y - pontos[3].PontosId(0).Y) * inc;
                 double BCX = pontos[2].PontosId(0).X + (pontos[1].PontosId(0).X - pontos[2].PontosId(0).X) * inc;
@@ -74,9 +75,10 @@ namespace gcgcg {
                 double ABCDY = ABCY + (BCDY - ABCY) * inc;
 
                 lista.Add(new Ponto4D(ABCDX, ABCDY)); 
+            }  
 
-                inc = inc + 0.1;
-            }            
+          
+          
             
         }
 
@@ -162,6 +164,20 @@ namespace gcgcg {
 
         public void AtualizarSpline(Ponto4D ptoInc, bool proximo) {
 
+        }
+
+        public void adicionarValorT() {
+            if (min > 1 && max < 10) {
+                min--;
+                max++;
+            }
+        }
+        
+        public void decrementarValorT() {
+            if (min <= 5 && max >= 5) {
+                min++;
+                max--;
+            }
         }
 
         #if CG_Debug
