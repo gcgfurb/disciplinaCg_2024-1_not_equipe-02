@@ -1,62 +1,72 @@
 using CG_Biblioteca;
 using OpenTK.Graphics.OpenGL4;
+using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace gcgcg
 {
     internal class Circulo : Objeto
     {
-        public Circulo(Objeto _paiRef, ref char _rotulo, Objeto objetoFilho = null) : base(_paiRef, ref _rotulo, objetoFilho)
-        {
-            // // vem da classe abstrata Objeto
-            // PrimitivaTipo = PrimitiveType.LineLoop;
-            // // define o tamanho dos pontos 
-            // PrimitivaTamanho = 2;
-            // List<Ponto4D> pontosCirculo = CalcularPontosCirculo(0.5, 0);
-            // foreach (Ponto4D ponto in pontosCirculo) {
-            //     PontosAdicionar(ponto);
-            // }
-
-            // Atualizar();
-        }
+        private double raio;
+        private List<Ponto4D> pontosCirculo;
 
         public Circulo(Objeto _paiRef, ref char _rotulo, double raio, double deslocamento) : base(_paiRef, ref _rotulo)
         {
-            // vem da classe abstrata Objeto
+            configInicial(raio, deslocamento);
+        }
+
+        public void configInicial(double raio, double deslocamento)
+        {
             PrimitivaTipo = PrimitiveType.LineLoop;
-            // define o tamanho dos pontos 
             PrimitivaTamanho = 2;
-            List<Ponto4D> pontosCirculo = CalcularPontosCirculo(raio, deslocamento);
-            foreach (Ponto4D ponto in pontosCirculo) {
-                PontosAdicionar(ponto);
-            }
+            this.raio = raio;
+            pontosCirculo = new List<Ponto4D>();
 
-            Atualizar();
+            atualizarCalculoPontos(deslocamento);
         }
 
-        public void Atualizar()
+        public  void CalcularPontosCirculo(double deslocamento)
         {
-            base.ObjetoAtualizar();
-        }
-
-        public static List<Ponto4D> CalcularPontosCirculo(double raio, double deslocamento)
-        {
-            List<Ponto4D> pontos = [];
+            //sempre vai limpar a lista de pontos
+            pontosCirculo.Clear();
             
             int numPontos = 72;
-
+            
             double angulo = 360 / numPontos;
             double add = angulo;
 
             for (int i = 0; i < numPontos; i++)
             {
                 Ponto4D ponto = new(Matematica.GerarPtosCirculo(angulo, raio).X + deslocamento, 
-                    Matematica.GerarPtosCirculo(angulo, raio).Y + deslocamento);
-                pontos.Add(ponto);
+                Matematica.GerarPtosCirculo(angulo, raio).Y + deslocamento);
+                pontosCirculo.Add(ponto);
                 angulo += add;
             }
+        }
 
-            return pontos;
+        //vai gerar os pontos novamente com o deslocamento e gerar o circulo
+        public void atualizarCalculoPontos(double deslocamento) 
+        {
+            CalcularPontosCirculo(deslocamento);
+            pontosLista.Clear();        
+            foreach (Ponto4D ponto in pontosCirculo) {
+                PontosAdicionar(ponto);
+            }
+        }
+
+        public void deslocarCirculo(double x, double y)
+        {
+            int i = 0;
+
+            foreach (Ponto4D pto in pontosCirculo)
+            {
+                pto.X += x;
+                pto.Y += y;
+
+                PontosAlterar(pto, i);    
+                i ++;    
+            }
         }
 
         #if CG_Debug

@@ -17,31 +17,24 @@ namespace gcgcg
 {
     public class Mundo : GameWindow
     {
-        private static Objeto mundo = null;
-
-        private char rotuloAtual = '?';
-        private Objeto objetoSelecionado = null;
-
-        private Circulo circuloMaior;
-        private Circulo circuloMenor;
-        private Retangulo quadrado;
-        private Ponto4D pontoCentral;
-        List<Ponto4D> listaBBox = new List<Ponto4D>();
-
         private readonly float[] _sruEixos =
         {
             -0.5f,  0.0f,  0.0f, /* X- */      0.5f,  0.0f,  0.0f, /* X+ */
             0.0f, -0.5f,  0.0f, /* Y- */      0.0f,  0.5f,  0.0f, /* Y+ */
             0.0f,  0.0f, -0.5f, /* Z- */      0.0f,  0.0f,  0.5f, /* Z+ */
         };
-
+        private static Objeto mundo = null;
+        private char rotuloAtual = '?';
         private int _vertexBufferObject_sruEixos;
         private int _vertexArrayObject_sruEixos;
-
         private Shader _shaderVermelha;
         private Shader _shaderVerde;
         private Shader _shaderAzul;
-        private BBox boundingBox;
+        private Circulo circuloMaior;
+        private Circulo circuloMenor;
+        private Retangulo box;
+        private Ponto pontoCentral;
+        private BBox bbox;
 
         public Mundo(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
                : base(gameWindowSettings, nativeWindowSettings)
@@ -50,6 +43,25 @@ namespace gcgcg
         }
 
         protected override void OnLoad()
+        {
+            configPadrao();    
+            criarComponentes(mundo, rotuloAtual);
+        }
+
+        protected override void OnRenderFrame(FrameEventArgs e)
+        {
+            base.OnRenderFrame(e);
+
+            GL.Clear(ClearBufferMask.ColorBufferBit);
+
+#if CG_Gizmo
+            Sru3D();
+#endif
+            mundo.Desenhar();
+            SwapBuffers();
+        }
+
+        private void configPadrao()
         {
             base.OnLoad();
 
@@ -67,41 +79,38 @@ namespace gcgcg
             _shaderVerde = new Shader("Shaders/shader.vert", "Shaders/shaderVerde.frag");
             _shaderAzul = new Shader("Shaders/shader.vert", "Shaders/shaderAzul.frag");
             #endregion
-
-            circuloMaior = new Circulo(mundo, ref rotuloAtual, 0.2, 0.2);
-
-            listaBBox.Add(circuloMaior.PontosId(9));
-            listaBBox.Add(circuloMaior.PontosId(45));
-
-            boundingBox = new BBox();
-            boundingBox.Atualizar(new Transformacao4D(), listaBBox);
         }
-
-        protected override void OnRenderFrame(FrameEventArgs e)
-        {
-            base.OnRenderFrame(e);
-
-            GL.Clear(ClearBufferMask.ColorBufferBit);
-
-#if CG_Gizmo
-            Sru3D();
-#endif
-            mundo.Desenhar();
-            SwapBuffers();
-        }
-
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
+            double positivo = 0.01;
+            double negativo = -0.01;
+            double padrao = 0.0;
+
             base.OnUpdateFrame(e);
 
             #region Teclado
             var input = KeyboardState;
-            if (input.IsKeyPressed(Keys.Escape))
+            //ir esquerda
+        if (input.IsKeyPressed(Keys.E) || input.IsKeyPressed(Keys.Left)) 
             {
-                Close();
+                moverPrincipal(negativo, padrao);
+            }
+            //ir direita
+            if (input.IsKeyPressed(Keys.D) || input.IsKeyPressed(Keys.Right)) 
+            {
+                moverPrincipal(positivo, padrao);
+            }
+            //ir cima
+            if (input.IsKeyPressed(Keys.C) || input.IsKeyPressed(Keys.Up)) 
+            {
+                moverPrincipal(padrao, positivo);
+            }
+            //ir baixo
+            if (input.IsKeyPressed(Keys.B) || input.IsKeyPressed(Keys.Down)) 
+            {
+                moverPrincipal(padrao, negativo);
             }
             #endregion
-
         }
 
         protected override void OnResize(ResizeEventArgs e)
@@ -151,5 +160,49 @@ namespace gcgcg
         }
 #endif
 
+        private void criarComponentes(Objeto mundo, char rotuloAtual) 
+        {
+            pontoCentral = new Ponto(mundo, ref rotuloAtual, new Ponto4D(0.2, 0.2)) {
+                PrimitivaTamanho = 3,
+                shaderObjeto = new Shader("Shaders/shader.vert", "Shaders/shaderCiano.frag")
+            };
+
+            circuloMaior = new Circulo(mundo, ref rotuloAtual, 0.2, 0.2) {
+                shaderObjeto = new Shader("Shaders/shader.vert", "Shaders/shaderAmarela.frag")
+            };
+
+            circuloMenor = new Circulo(mundo, ref rotuloAtual, 0.05, 0.2) {
+                shaderObjeto = new Shader("Shaders/shader.vert", "Shaders/shaderBranca.frag")
+            };
+
+            box = new Retangulo(mundo, ref rotuloAtual, circuloMaior.PontosId(9), circuloMaior.PontosId(45)) {
+                PrimitivaTipo = PrimitiveType.LineLoop,
+                shaderObjeto = new Shader("Shaders/shader.vert", "Shaders/shaderAzul.frag")
+            };
+       
+            //adicionando um BBox no tamanho do quadrado
+            List<Ponto4D> listaBBox = new List<Ponto4D> {circuloMaior.PontosId(9), circuloMaior.PontosId(45)};
+            bbox = new BBox();
+            bbox.Atualizar(new Transformacao4D(), listaBBox);
+        }
+
+        private void moverPrincipal(double deslocX, double deslocY) {
+            
+            Ponto4D aux = new Ponto4D(pontoCentral.PontosId(0).X + deslocX,  pontoCentral.PontosId(0).Y + deslocY);     
+ 
+            if(circuloMaior.Bbox().Dentro(aux) && Matematica.distanciaQuadrado(aux, new Ponto4D(0.2, 0.2)) < 0.04)
+            {
+                //atualiza o ponto principal
+                pontoCentral.PontosId(0).X += deslocX;
+                pontoCentral.PontosId(0).Y += deslocY;
+                pontoCentral.Atualizar();
+
+                //gera os pontos do circulo menor novamente
+                circuloMenor.deslocarCirculo(deslocX, deslocY);
+                
+                //valida se ainda está dentro do quadrado
+                box.PrimitivaTipo = bbox.Dentro(pontoCentral.PontosId(0)) ?  PrimitiveType.LineLoop : PrimitiveType.Points;      
+            }
+        }
     }
 }
