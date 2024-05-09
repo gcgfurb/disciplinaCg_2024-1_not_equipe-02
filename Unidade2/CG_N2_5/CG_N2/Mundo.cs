@@ -93,6 +93,7 @@ namespace gcgcg
             //ir esquerda
         if (input.IsKeyPressed(Keys.E) || input.IsKeyPressed(Keys.Left)) 
             {
+                // vai movimentar o ponto central do circulo que se move 
                 moverPrincipal(negativo, padrao);
             }
             //ir direita
@@ -190,7 +191,8 @@ namespace gcgcg
             
             Ponto4D aux = new Ponto4D(pontoCentral.PontosId(0).X + deslocX,  pontoCentral.PontosId(0).Y + deslocY);     
  
-            if(circuloMaior.Bbox().Dentro(aux) && Matematica.distanciaQuadrado(aux, new Ponto4D(0.2, 0.2)) < 0.04)
+            // 0.04 é o quadrado da distância máxima permitida entre os centros dos dois círculos = 0,2 x 0,2
+            if (circuloMaior.Bbox().Dentro(aux) && Matematica.distanciaQuadrado(aux, new Ponto4D(0.2, 0.2)) < 0.04)
             {
                 //atualiza o ponto principal
                 pontoCentral.PontosId(0).X += deslocX;
