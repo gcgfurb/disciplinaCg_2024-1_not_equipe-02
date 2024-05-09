@@ -14,13 +14,12 @@ namespace gcgcg
             PrimitivaTamanho = 5;
             List<Ponto4D> pontosCirculo = CalcularPontosCirculo();
             foreach (Ponto4D ponto in pontosCirculo) {
-                base.PontosAdicionar(ponto);
+                PontosAdicionar(ponto);
             }
 
             // Adiciona a linha do centro até a extremidade do círculo
             Ponto4D pontoCentral = new Ponto4D(0, 0);
             PontosAdicionar(pontoCentral); // Adiciona o ponto central
-            PontosAdicionar(pontosCirculo[0]); // Adiciona o primeiro ponto do círculo
             Atualizar();
         }
 

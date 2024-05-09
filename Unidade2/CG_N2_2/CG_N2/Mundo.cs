@@ -71,8 +71,10 @@ namespace gcgcg
                 PrimitiveType.LineLoop, PrimitiveType.LineStrip, PrimitiveType.Triangles,
                 PrimitiveType.TriangleStrip, PrimitiveType.TriangleFan];
 
-            objetoSelecionado = new Retangulo(mundo, ref rotuloAtual, new Ponto4D(-0.5, 0.5), new Ponto4D(0.5, -0.5));
-            objetoSelecionado.PrimitivaTipo = primitivas[index];
+            objetoSelecionado = new Retangulo(mundo, ref rotuloAtual, new Ponto4D(-0.5, 0.5), new Ponto4D(0.5, -0.5)) {
+                PrimitivaTipo = primitivas[index]
+            };
+
             index++;
         }
 
@@ -101,36 +103,13 @@ namespace gcgcg
             }
             else
             {
-                if (input.IsKeyPressed(Keys.Right))
+                if (input.IsKeyPressed(Keys.Space))
                 {
-                    objetoSelecionado.PontosAlterar(new Ponto4D(objetoSelecionado.PontosId(0).X + 0.005, objetoSelecionado.PontosId(0).Y, 0), 0);
-                    objetoSelecionado.ObjetoAtualizar();
-                }
-                else
-                {
-                    if (input.IsKeyPressed(Keys.P))
-                    {
-                        Console.WriteLine(objetoSelecionado);
+                    if (index == primitivas.Length) {
+                        index = 0;
                     }
-                    else
-                    {
-                        if (input.IsKeyPressed(Keys.Space))
-                        {
-                            if (index == primitivas.Length) {
-                                index = 0;
-                            }
-                            objetoSelecionado.PrimitivaTipo = primitivas[index];
-                            index++;
-                            Console.WriteLine(objetoSelecionado.ToString());
-                        }
-                        else
-                        {
-                            if (input.IsKeyPressed(Keys.C))
-                            {
-                                objetoSelecionado.shaderObjeto = new Shader("Shaders/shader.vert", "Shaders/shaderCiano.frag");
-                            }
-                        }
-                    }
+                    objetoSelecionado.PrimitivaTipo = primitivas[index];
+                    index++;
                 }
             }
             #endregion

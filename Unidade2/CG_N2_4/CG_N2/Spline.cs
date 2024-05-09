@@ -54,7 +54,7 @@ namespace gcgcg {
         }
 
         public void SplineQtdPto() {
-
+            // quando for realizar alguma ação, vai pegar as coordenadas atualizadas e gerar a spline novamente
             lista.Add(pontos[3].PontosId(0));         
             for (int i = min; i < max; i++) {
                 double inc = i / 10.0;
@@ -77,9 +77,7 @@ namespace gcgcg {
                 lista.Add(new Ponto4D(ABCDX, ABCDY)); 
             }  
 
-          
-          
-            
+          lista.Add(pontos[0].PontosId(0));     
         }
 
         public void vinculoObjeto() {
@@ -95,6 +93,7 @@ namespace gcgcg {
         }
 
         public void atualizarSpline() {
+            // toda vez que movimenta a spline gera pontos novamente, precisa limpar para atualizar o frame
             lista.Clear();
             pontosLista.Clear();    
             SplineQtdPto();

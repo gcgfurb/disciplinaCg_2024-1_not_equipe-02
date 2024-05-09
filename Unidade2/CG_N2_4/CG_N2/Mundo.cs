@@ -89,25 +89,25 @@ namespace gcgcg
                 spline.selecionaPontoVermelho();
             } 
             
-            if (input.IsKeyPressed(Keys.C)) { //direita
+            if (input.IsKeyPressed(Keys.C)) { 
                 spline.adicionarY();
                 atualizarSegRetas();
                 spline.atualizarSpline();
             }
 
-            if (input.IsKeyPressed(Keys.B)) { //direita
+            if (input.IsKeyPressed(Keys.B)) { 
                 spline.diminuirY();
                 atualizarSegRetas();
                 spline.atualizarSpline();
             }
 
-            if (input.IsKeyPressed(Keys.D)) { //direita
+            if (input.IsKeyPressed(Keys.D)) { 
                 spline.adicionarX();
                 atualizarSegRetas();
                 spline.atualizarSpline();
             }
 
-            if (input.IsKeyPressed(Keys.E)) { //esquerda
+            if (input.IsKeyPressed(Keys.E)) { 
                 spline.diminuirX();
                 atualizarSegRetas();
                 spline.atualizarSpline();
