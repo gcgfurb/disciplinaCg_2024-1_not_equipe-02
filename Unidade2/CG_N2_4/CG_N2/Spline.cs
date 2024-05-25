@@ -58,7 +58,7 @@ namespace gcgcg {
             lista.Add(pontos[3].PontosId(0));         
             for (int i = min; i < max; i++) {
                 double inc = i / 10.0;
-
+                // calcula pontos intermediários entre dois pontos - t0 e t1
                 double ABX = pontos[3].PontosId(0).X + (pontos[2].PontosId(0).X - pontos[3].PontosId(0).X) * inc;
                 double ABY = pontos[3].PontosId(0).Y + (pontos[2].PontosId(0).Y - pontos[3].PontosId(0).Y) * inc;
                 double BCX = pontos[2].PontosId(0).X + (pontos[1].PontosId(0).X - pontos[2].PontosId(0).X) * inc;

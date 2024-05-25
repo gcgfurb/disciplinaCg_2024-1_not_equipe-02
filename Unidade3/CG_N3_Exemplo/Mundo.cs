@@ -11,6 +11,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using OpenTK.Windowing.Desktop;
 using System;
+using System.Linq;
 using OpenTK.Mathematics;
 using System.Collections.Generic;
 
@@ -43,6 +44,9 @@ namespace gcgcg
     private Shader _shaderCiano;
     private Shader _shaderMagenta;
     private Shader _shaderAmarela;
+
+    private List<Ponto4D> pontos = new List<Ponto4D>();
+    private Poligono novoPoligonoTela;
 
     public Mundo(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
       : base(gameWindowSettings, nativeWindowSettings)
@@ -88,14 +92,14 @@ namespace gcgcg
       pontosPoligonoBandeira.Add(new Ponto4D(0.75, 0.75));  // C = (0.75, 0.75)
       pontosPoligonoBandeira.Add(new Ponto4D(0.50, 0.50));  // D = (0.50, 0.50)
       pontosPoligonoBandeira.Add(new Ponto4D(0.25, 0.75));  // E = (0.25, 0.75)
-      objetoSelecionado = new Poligono(mundo, ref rotuloAtual, pontosPoligonoBandeira);
+  //    objetoSelecionado = new Poligono(mundo, ref rotuloAtual, pontosPoligonoBandeira);
       #endregion
       #region declara um objeto filho ao polígono
       List<Ponto4D> pontosPoligonoTriangulo = new List<Ponto4D>();
       pontosPoligonoTriangulo.Add(new Ponto4D(0.50, 0.50)); // F = (0.50, 0.50)
       pontosPoligonoTriangulo.Add(new Ponto4D(0.75, 0.75)); // G = (0.75, 0.75)
       pontosPoligonoTriangulo.Add(new Ponto4D(0.25, 0.75)); // H = (0.25, 0.75)
-      objetoSelecionado = new Poligono(objetoSelecionado, ref rotuloAtual, pontosPoligonoTriangulo);
+  //    objetoSelecionado = new Poligono(objetoSelecionado, ref rotuloAtual, pontosPoligonoTriangulo);
       #endregion
     }
 
@@ -109,7 +113,7 @@ namespace gcgcg
 
 #if CG_Gizmo      
       Gizmo_Sru3D();
-      Gizmo_BBox();
+      //Gizmo_BBox();
 #endif
       SwapBuffers();
     }
@@ -160,10 +164,18 @@ namespace gcgcg
         objetoSelecionado.MatrizRotacao(10);
       if (estadoTeclado.IsKeyPressed(Keys.D2) && objetoSelecionado != null)
         objetoSelecionado.MatrizRotacao(-10);
-    if (estadoTeclado.IsKeyPressed(Keys.D3) && objetoSelecionado != null)   //FIXME: problema depois de usa rotação pto qquer, não usa o novo centro da BBOX
-        objetoSelecionado.MatrizRotacaoZBBox(10);
+      if (estadoTeclado.IsKeyPressed(Keys.D3) && objetoSelecionado != null)   //FIXME: problema depois de usa rotação pto qquer, não usa o novo centro da BBOX
+          objetoSelecionado.MatrizRotacaoZBBox(10);
       if (estadoTeclado.IsKeyPressed(Keys.D4) && objetoSelecionado != null)
         objetoSelecionado.MatrizRotacaoZBBox(-10);
+      // enter limpa tudo
+      if (estadoTeclado.IsKeyPressed(Keys.Enter)) 
+      {
+        objetoSelecionado = new Poligono(mundo, ref rotuloAtual, new List<Ponto4D>(pontos));
+        pontos.Clear();
+      }
+
+
       #endregion
 
       #region  Mouse
@@ -175,24 +187,49 @@ namespace gcgcg
         Console.WriteLine("Vector2 mousePosition: " + MousePosition);
         Console.WriteLine("Vector2i windowSize: " + ClientSize);
       }
-      if (MouseState.IsButtonDown(MouseButton.Right) && objetoSelecionado != null)
+
+      if (MouseState.IsButtonDown(MouseButton.Right))
       {
-        Console.WriteLine("MouseState.IsButtonDown(MouseButton.Right)");
-
-        int janelaLargura = ClientSize.X;
-        int janelaAltura = ClientSize.Y;
-        Ponto4D mousePonto = new Ponto4D(MousePosition.X, MousePosition.Y);
-        Ponto4D sruPonto = Utilitario.NDC_TelaSRU(janelaLargura, janelaAltura, mousePonto);
-
-        objetoSelecionado.PontosAlterar(sruPonto, 0);
+        desenharPoligono();  
       }
       if (MouseState.IsButtonReleased(MouseButton.Right))
       {
-        Console.WriteLine("MouseState.IsButtonReleased(MouseButton.Right)");
+        
       }
 
       #endregion
 
+    }
+
+    private void desenharPoligono() {
+
+      // se o objeto ainda nao existir, cria ele
+      if (objetoSelecionado == null) {
+        objetoSelecionado = new Poligono(mundo, ref rotuloAtual, pontos);
+      }
+
+      pontos.Add(getMouseLocation());
+        
+        // se conter dois pontos, significa que tem que mostrar algo em tela, está iniciando o desenho de um novo polígono
+        if (pontos.Count == 2) {
+          novoPoligonoTela = new Poligono(mundo, ref rotuloAtual, new List<Ponto4D>(pontos));
+          objetoSelecionado = novoPoligonoTela;
+
+        // se for maior que 2, significa que está incrementando a quantidade de pontos do polígono.
+        // pega o último ponto guardado e mostra na tela
+        } else if (pontos.Count > 2) {
+          objetoSelecionado.PontosAdicionar(pontos.Last());
+          objetoSelecionado.ObjetoAtualizar();
+        }
+    }
+
+    private Ponto4D getMouseLocation() {
+      int janelaLargura = Size.X;
+      int janelaAltura = Size.Y;
+      
+      Ponto4D mousePonto = new Ponto4D(MousePosition.X, MousePosition.Y);
+
+      return Utilitario.NDC_TelaSRU(janelaLargura, janelaAltura, mousePonto);
     }
 
     protected override void OnResize(ResizeEventArgs e)
