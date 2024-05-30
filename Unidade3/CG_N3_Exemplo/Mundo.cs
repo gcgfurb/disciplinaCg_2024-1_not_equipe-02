@@ -168,13 +168,17 @@ namespace gcgcg
           objetoSelecionado.MatrizRotacaoZBBox(10);
       if (estadoTeclado.IsKeyPressed(Keys.D4) && objetoSelecionado != null)
         objetoSelecionado.MatrizRotacaoZBBox(-10);
-      // enter limpa tudo
+
       if (estadoTeclado.IsKeyPressed(Keys.Enter)) 
       {
         objetoSelecionado = new Poligono(mundo, ref rotuloAtual, new List<Ponto4D>(pontos));
         pontos.Clear();
       }
 
+      if (estadoTeclado.IsKeyPressed(Keys.D) && objetoSelecionado != null)
+      {
+        removerPoligonoSelecionado();
+      }
 
       #endregion
 
@@ -230,6 +234,14 @@ namespace gcgcg
       Ponto4D mousePonto = new Ponto4D(MousePosition.X, MousePosition.Y);
 
       return Utilitario.NDC_TelaSRU(janelaLargura, janelaAltura, mousePonto);
+    }
+
+    private void removerPoligonoSelecionado() {
+      objetoSelecionado = mundo.GrafocenaBuscaProximo(objetoSelecionado);
+
+      if (objetoSelecionado == null) {
+        objetoSelecionado = mundo;
+      }
     }
 
     protected override void OnResize(ResizeEventArgs e)
