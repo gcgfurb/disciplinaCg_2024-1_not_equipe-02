@@ -171,10 +171,17 @@ namespace gcgcg
       // enter limpa tudo
       if (estadoTeclado.IsKeyPressed(Keys.Enter)) 
       {
-        objetoSelecionado = new Poligono(mundo, ref rotuloAtual, new List<Ponto4D>(pontos));
+       // objetoSelecionado = new Poligono(mundo, ref rotuloAtual, new List<Ponto4D>(pontos));
+        mundo.FilhoAdicionar(objetoSelecionado);
+        objetoSelecionado = null;
         pontos.Clear();
+        mundo.ObjetoAtualizar();
       }
 
+      if (estadoTeclado.IsKeyPressed(Keys.D)) 
+      {
+        removerPoligono();
+      }
 
       #endregion
 
@@ -188,13 +195,14 @@ namespace gcgcg
         Console.WriteLine("Vector2i windowSize: " + ClientSize);
       }
 
-      if (MouseState.IsButtonDown(MouseButton.Right))
+      if (MouseState.IsButtonPressed(MouseButton.Left))
       {
-        desenharPoligono();  
+        objetoSelecionado = mundo;
       }
+
       if (MouseState.IsButtonReleased(MouseButton.Right))
       {
-        
+        desenharPoligono();  
       }
 
       #endregion
@@ -204,23 +212,32 @@ namespace gcgcg
     private void desenharPoligono() {
 
       // se o objeto ainda nao existir, cria ele
-      if (objetoSelecionado == null) {
+      if (objetoSelecionado == null || objetoSelecionado == mundo) {
         objetoSelecionado = new Poligono(mundo, ref rotuloAtual, pontos);
       }
 
-      pontos.Add(getMouseLocation());
-        
-        // se conter dois pontos, significa que tem que mostrar algo em tela, está iniciando o desenho de um novo polígono
-        if (pontos.Count == 2) {
-          novoPoligonoTela = new Poligono(mundo, ref rotuloAtual, new List<Ponto4D>(pontos));
-          objetoSelecionado = novoPoligonoTela;
+      objetoSelecionado.PontosAdicionar(getMouseLocation());
+      
+        // // se conter dois pontos, significa que tem que mostrar algo em tela, está iniciando o desenho de um novo polígono
+        // if (pontos.Count == 2) {
+        //   novoPoligonoTela = new Poligono(mundo, ref rotuloAtual, new List<Ponto4D>(pontos));
+        //   objetoSelecionado = novoPoligonoTela;
 
-        // se for maior que 2, significa que está incrementando a quantidade de pontos do polígono.
-        // pega o último ponto guardado e mostra na tela
-        } else if (pontos.Count > 2) {
-          objetoSelecionado.PontosAdicionar(pontos.Last());
+        // // se for maior que 2, significa que está incrementando a quantidade de pontos do polígono.
+        // // pega o último ponto guardado e mostra na tela
+        // } else if (pontos.Count > 2) {
+        //   objetoSelecionado.PontosAdicionar(pontos.Last());
+        // }
           objetoSelecionado.ObjetoAtualizar();
-        }
+    }
+
+   private void removerPoligono() {
+      mundo.objetoRemover(objetoSelecionado);
+      objetoSelecionado = mundo.GrafocenaBuscaProximo(objetoSelecionado);
+
+      if (objetoSelecionado == null) {
+        objetoSelecionado = mundo;
+      }
     }
 
     private Ponto4D getMouseLocation() {
