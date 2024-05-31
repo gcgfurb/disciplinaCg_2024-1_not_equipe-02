@@ -19,6 +19,10 @@ namespace gcgcg
 {
   public class Mundo : GameWindow
   {
+    private static Objeto mundo = null;
+
+    private char rotuloAtual = '?';
+    private Objeto objetoSelecionado = null;
 
     private readonly float[] _sruEixos =
     [
@@ -27,12 +31,9 @@ namespace gcgcg
        0.0f,  0.0f,  0.0f, /* Z- */      0.0f,  0.0f,  0.5f  /* Z+ */
     ];
 
-    private char rotuloAtual = '?';
-    private static Objeto mundo = null;
-    private Objeto objetoSelecionado = null;
-
     private int _vertexBufferObject_sruEixos;
     private int _vertexArrayObject_sruEixos;
+
     private int _vertexBufferObject_bbox;
     private int _vertexArrayObject_bbox;
 
@@ -44,13 +45,13 @@ namespace gcgcg
     private Shader _shaderMagenta;
     private Shader _shaderAmarela;
 
-    private List<Ponto4D> pontos = new List<Ponto4D>();
+    private List<Ponto4D> pontos;
     private Objeto novo;
 
     public Mundo(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
       : base(gameWindowSettings, nativeWindowSettings)
     {
-      mundo = new Objeto(null, ref rotuloAtual);
+      mundo ??= new Objeto(null, ref rotuloAtual); //padrão Singleton
     }
 
     protected override void OnLoad()
@@ -83,6 +84,11 @@ namespace gcgcg
       GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
       GL.EnableVertexAttribArray(0);
       #endregion
+
+      #region iniciar variaveis
+      pontos = new List<Ponto4D>();
+      #endregion
+
     }
 
     protected override void OnRenderFrame(FrameEventArgs e)
@@ -95,11 +101,10 @@ namespace gcgcg
 
 #if CG_Gizmo      
       Gizmo_Sru3D();
-      //Gizmo_BBox();
+      Gizmo_BBox();
 #endif
       SwapBuffers();
     }
-
     protected override void OnUpdateFrame(FrameEventArgs e)
     {
       base.OnUpdateFrame(e);
@@ -233,6 +238,7 @@ namespace gcgcg
       if (MouseState.IsButtonReleased(MouseButton.Right))
         desenharPoligono();
 
+
       // ao segurar o botao direito no mouse
       if (MouseState.IsButtonDown(MouseButton.Right))
         efetuarRastroPoligono();
@@ -282,6 +288,7 @@ namespace gcgcg
 
       //se após retirar o vertice, não ter 2 pontos, mata o poligono também
       if (objetoSelecionado.getTamanhoListaPontos() < 2)
+      objetoSelecionado.ShaderObjeto = _shaderBranca;
         removerPoligonoSelecionado();
     }
 
@@ -305,17 +312,7 @@ namespace gcgcg
       objetoSelecionado.PrimitivaTipo =  (objetoSelecionado.PrimitivaTipo == PrimitiveType.LineLoop) ? PrimitiveType.LineStrip : PrimitiveType.LineLoop;
 
     }
-   
-    private Ponto4D getPosicaoMouse()
-    {
-      int janelaLargura = Size.X;
-      int janelaAltura = Size.Y;
-
-      Ponto4D mousePonto = new Ponto4D(MousePosition.X, MousePosition.Y);
-
-      return Utilitario.NDC_TelaSRU(janelaLargura, janelaAltura, mousePonto);
-    }
-
+  
     private void mudaCorPoligono(char c) 
     {
       Shader shader = null;
@@ -370,6 +367,16 @@ namespace gcgcg
 
         objetoSelecionado.ObjetoAtualizar();
 
+    }
+
+    private Ponto4D getPosicaoMouse()
+    {
+      int janelaLargura = Size.X;
+      int janelaAltura = Size.Y;
+
+      Ponto4D mousePonto = new Ponto4D(MousePosition.X, MousePosition.Y);
+
+      return Utilitario.NDC_TelaSRU(janelaLargura, janelaAltura, mousePonto);
     }
 
     protected override void OnResize(ResizeEventArgs e)

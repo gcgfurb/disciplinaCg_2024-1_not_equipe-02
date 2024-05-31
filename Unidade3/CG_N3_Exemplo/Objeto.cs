@@ -70,6 +70,12 @@ namespace gcgcg
       }
     }
 
+    public void objetoRemover(Objeto objetoSelecionado)
+    {
+      Objeto objeto = GrafocenaBusca(objetoSelecionado.rotulo);
+      objeto.paiRef.objetosLista.Remove(objeto);
+    }
+
     public void ObjetoAtualizar()
     {
       float[] vertices = new float[pontosLista.Count * 3];
