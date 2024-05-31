@@ -6,6 +6,7 @@ using CG_Biblioteca;
 using OpenTK.Graphics.OpenGL4;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace gcgcg
 {
@@ -317,6 +318,95 @@ namespace gcgcg
       return retorno;
     }
 #endif
+
+    //busca o objeto e remove ele do obj pai
+    public bool removerObjeto(Objeto obj)
+    {
+      bool excluido = false;
+      Objeto aux = GrafocenaBusca(obj.rotulo);
+      //se tiver obj pai remove ele
+      if (aux.paiRef != null)
+      {
+        aux.paiRef.objetosLista.Remove(aux);
+        excluido = true;
+      }
+
+      return excluido;
+    }
+
+    //reotrna o indice mais proximo da posição do mouse
+    public int ObterIndiceMaisProximo(Ponto4D localizacaoMouse)
+    {
+      int indiceMaisProximo = -1;
+      double distanciaMaisProxima = double.MaxValue;
+
+      for (int i = 0; i < pontosLista.Count; i++)
+      {
+        double distancia = Matematica.Distancia(localizacaoMouse, pontosLista[i]);
+
+        if (distancia < distanciaMaisProxima)
+        {
+          distanciaMaisProxima = distancia;
+          indiceMaisProximo = i;
+        }
+      }
+
+      return indiceMaisProximo;
+    }
+
+    //remove o ponto mais proximo do mouse
+    public void removerVerticePoligono(Ponto4D posMouse)
+    {
+      if (pontosLista.Count == 1)
+      {
+        return;
+      }
+
+      pontosLista.RemoveAt(ObterIndiceMaisProximo(posMouse));
+      ObjetoAtualizar();
+    }
+
+    //retorna o tamanho da lista de pontos
+    public int getTamanhoListaPontos()
+    {
+      return pontosLista.Count;
+    }
+
+    public Objeto isDentroBbox(Ponto4D pto)
+    {
+      // verifica se o ponto está dentro da bbox e se o ponto esta dentro do poligono com o scanline
+      if (bBox.Dentro(pto) && paiRef != null && EstaDentroDoPoligono(pto))
+          return this;
+
+      // verifica os filhos recursivamente
+      foreach (Objeto filho in objetosLista) {
+        Objeto obj = filho.isDentroBbox(pto);
+
+        if (obj != null)
+          return obj;
+      }
+
+      return null;
+    }
+
+    // Método auxiliar para verificar se o ponto está dentro do polígono
+    private bool EstaDentroDoPoligono(Ponto4D pontoClique)
+    {
+      //fecha o poligono
+      var pontosPoligono = pontosLista.Append(pontosLista.First()).ToArray();
+      var count = 0;
+
+      for (var indicePonto = 0; indicePonto < pontosLista.Count; indicePonto++) {
+        var pto1 = pontosPoligono[indicePonto];
+        var pto2 = pontosPoligono[indicePonto + 1];
+
+        if (Matematica.ScanLine(pontoClique, pto1, pto2))
+          count++;
+      }
+
+      // O ponto está dentro do polígono se a contagem de interseções for ímpar
+      return count % 2 != 0;
+    }
 
   }
 }
