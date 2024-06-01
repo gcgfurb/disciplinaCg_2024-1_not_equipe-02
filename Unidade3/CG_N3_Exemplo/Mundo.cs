@@ -44,6 +44,7 @@ namespace gcgcg
     private Shader _shaderMagenta;
     private Shader _shaderAmarela;
 
+    bool controlePrimeiroClique = true;
     private List<Ponto4D> pontos;
     private Objeto novo;
 
@@ -87,7 +88,6 @@ namespace gcgcg
       #region iniciar variaveis
       pontos = new List<Ponto4D>();
       #endregion
-
     }
 
     protected override void OnRenderFrame(FrameEventArgs e)
@@ -108,22 +108,17 @@ namespace gcgcg
     {
       base.OnUpdateFrame(e);
 
-      // ☞ 396c2670-8ce0-4aff-86da-0f58cd8dcfdc   TODO: forma otimizada para teclado.
       #region Teclado
       var estadoTeclado = KeyboardState;
       if (estadoTeclado.IsKeyDown(Keys.Escape))
         Close();
+        
       if (estadoTeclado.IsKeyPressed(Keys.Space))
       {
         if (objetoSelecionado == null)
           objetoSelecionado = mundo;
-        // objetoSelecionado.shaderObjeto = _shaderBranca;
         objetoSelecionado = mundo.GrafocenaBuscaProximo(objetoSelecionado);
-        // objetoSelecionado.shaderObjeto = _shaderAmarela;
       }
-
-      if (estadoTeclado.IsKeyPressed(Keys.G))
-        mundo.GrafocenaImprimir("");
 
       if (estadoTeclado.IsKeyPressed(Keys.Enter))
       {
@@ -134,6 +129,9 @@ namespace gcgcg
         }
       }
 
+      if (estadoTeclado.IsKeyPressed(Keys.G))
+        mundo.GrafocenaImprimir("");
+
       if (objetoSelecionado != null)
       {
         if (estadoTeclado.IsKeyPressed(Keys.M))
@@ -141,42 +139,6 @@ namespace gcgcg
 
         if (estadoTeclado.IsKeyPressed(Keys.I))
           objetoSelecionado.MatrizAtribuirIdentidade();
-
-        if (estadoTeclado.IsKeyPressed(Keys.Left))
-          objetoSelecionado.MatrizTranslacaoXYZ(-0.05, 0, 0);
-
-        if (estadoTeclado.IsKeyPressed(Keys.Right))
-          objetoSelecionado.MatrizTranslacaoXYZ(0.05, 0, 0);
-
-        if (estadoTeclado.IsKeyPressed(Keys.Up))
-          objetoSelecionado.MatrizTranslacaoXYZ(0, 0.05, 0);
-
-        if (estadoTeclado.IsKeyPressed(Keys.Down))
-          objetoSelecionado.MatrizTranslacaoXYZ(0, -0.05, 0);
-
-        if (estadoTeclado.IsKeyPressed(Keys.PageUp))
-          objetoSelecionado.MatrizEscalaXYZ(2, 2, 2);
-
-        if (estadoTeclado.IsKeyPressed(Keys.PageDown))
-          objetoSelecionado.MatrizEscalaXYZ(0.5, 0.5, 0.5);
-
-        if (estadoTeclado.IsKeyPressed(Keys.Home))
-          objetoSelecionado.MatrizEscalaXYZBBox(0.5, 0.5, 0.5);
-
-        if (estadoTeclado.IsKeyPressed(Keys.End))
-          objetoSelecionado.MatrizEscalaXYZBBox(2, 2, 2);
-
-        if (estadoTeclado.IsKeyPressed(Keys.D1))
-          objetoSelecionado.MatrizRotacao(10);
-
-        if (estadoTeclado.IsKeyPressed(Keys.D2))
-          objetoSelecionado.MatrizRotacao(-10);
-
-        if (estadoTeclado.IsKeyPressed(Keys.D3))
-          objetoSelecionado.MatrizRotacaoZBBox(10);
-
-        if (estadoTeclado.IsKeyPressed(Keys.D4))
-          objetoSelecionado.MatrizRotacaoZBBox(-10);
 
         // remove o poligono
         if (estadoTeclado.IsKeyPressed(Keys.D))
@@ -206,51 +168,83 @@ namespace gcgcg
         if (estadoTeclado.IsKeyPressed(Keys.B))
           mudaCorPoligono('B');
 
+        // muda a cor do poligono para branco
+        if (estadoTeclado.IsKeyPressed(Keys.W))
+          mudaCorPoligono('W');
+
         // move poligono para cima
         if (estadoTeclado.IsKeyPressed(Keys.Up))
-          transacionarPoligono(0.0, 1.0, 0.0);
+          transacionarPoligono(0, 0.05, 0);
 
         // move poligono para baixo
         if (estadoTeclado.IsKeyPressed(Keys.Down))
-          transacionarPoligono(0.0, -0.1, 0.0);
+          transacionarPoligono(0, -0.05, 0);
 
         // move poligono para direita
         if (estadoTeclado.IsKeyPressed(Keys.Right))
-          transacionarPoligono(0.1, 0.0, 0.0);
+          transacionarPoligono(0.05, 0, 0);
 
         // move poligono para esquerda          
         if (estadoTeclado.IsKeyPressed(Keys.Left))
-          transacionarPoligono(-0.1, 0.0, 0.0);
+          transacionarPoligono(-0.05, 0, 0);
 
-        // redimenciona poligono com escala
-        if (estadoTeclado.IsKeyPressed(Keys.Home))
-          escalaPoligono(2.0, 2.0, 1.0);
+        // redimenciona poligono com escala a partir do Bbox
+        if (estadoTeclado.IsKeyReleased(Keys.Home))
+          escalaBboxPoligono(0.5, 0.5, 0.5);
 
-        // redimenciona poligono com escala
-        if (estadoTeclado.IsKeyPressed(Keys.End))
-          escalaPoligono(0.5, 0.5, 1.0);
+        // redimenciona poligono com escala a partir do Bbox
+        if (estadoTeclado.IsKeyReleased(Keys.End))
+          escalaBboxPoligono(2, 2, 2);
+
+        // redimenciona poligono com escala a partir da tela
+        if (estadoTeclado.IsKeyReleased(Keys.PageUp))
+          escalaPoligono(2, 2, 2);
+
+        // redimenciona poligono com escala a partir da tela
+        if (estadoTeclado.IsKeyReleased(Keys.PageDown))
+          escalaPoligono(0.5, 0.5, 0.5);
+
+        // rotaciona o poligono
+        if (estadoTeclado.IsKeyReleased(Keys.D1) || estadoTeclado.IsKeyReleased(Keys.KeyPad1))
+          rotacionarPoligono(10);
+
+        // rotaciona o poligono
+        if (estadoTeclado.IsKeyReleased(Keys.D2) || estadoTeclado.IsKeyReleased(Keys.KeyPad2))
+          rotacionarPoligono(-10);
+
+        // rotaciona o bbox
+        if (estadoTeclado.IsKeyReleased(Keys.D3) || estadoTeclado.IsKeyReleased(Keys.KeyPad3))
+          rotacionarBbox(10);
+
+        // rotaciona o bbox
+        if (estadoTeclado.IsKeyReleased(Keys.D4) || estadoTeclado.IsKeyReleased(Keys.KeyPad4))
+          rotacionarBbox(-10);
       }
       #endregion
 
       #region  Mouse
-
       // ao clicar com o botao direito do mouse
       if (MouseState.IsButtonReleased(MouseButton.Right))
-        desenharPoligono();
-
+        controlePrimeiroClique = true;
 
       // ao segurar o botao direito no mouse
       if (MouseState.IsButtonDown(MouseButton.Right))
-        efetuarRastroPoligono();
+      {
+        if (controlePrimeiroClique) {
+          desenharPoligono();
+          controlePrimeiroClique = false;
+        }
+
+        efetuarRastroPoligono();  
+      }
 
       // ao clicar no botao esquerdo do mouse
       if (MouseState.IsButtonPressed(MouseButton.Left))
         selecionaPoligono();
-
       #endregion
-
     }
 
+    // desenha o poligono em tela
     private void desenharPoligono()
     {
       pontos.Add(getPosicaoMouse());
@@ -259,8 +253,8 @@ namespace gcgcg
       {
         //criando o novo objeto e setando direto no selecionado
         objetoSelecionado = novo = new Poligono(objetoSelecionado == null ? mundo : objetoSelecionado, ref rotuloAtual, new List<Ponto4D>(pontos.ToList()));
-
       }
+      
       //se ja tiver 2, então ja criou o objeto e precisa somente adicionar os pontos
       if (pontos.Count > 2)
       {
@@ -269,6 +263,7 @@ namespace gcgcg
       }
     }
 
+    // faz o rastro depois do terceiro ponto
     private void efetuarRastroPoligono()
     {
       // se o objeto selecionado não for nullo e tiver mais que 1 pto adicionado  
@@ -279,29 +274,30 @@ namespace gcgcg
       }
     }
 
+    // move o vertice do poligono mais proximo da posição do mouse
     private void moveVerticePoligono()
     {
-      objetoSelecionado.PontosAlterar(getPosicaoMouse(), objetoSelecionado.ObterIndiceMaisProximo(getPosicaoMouse()));
+      Ponto4D aux = getPosicaoMouse();  
+      objetoSelecionado.PontosAlterar(aux, objetoSelecionado.ObterIndiceMaisProximo(aux));
     }
 
+    // remove o vertice do poligono mais proximo da posição do mouse
     private void removeVerticePoligono()
     {
       objetoSelecionado.removerVerticePoligono(getPosicaoMouse());
 
       //se após retirar o vertice, não ter 2 pontos, mata o poligono também
       if (objetoSelecionado.getTamanhoListaPontos() < 2)
-        objetoSelecionado.ShaderObjeto = _shaderBranca;
-      removerPoligonoSelecionado();
+        removerPoligonoSelecionado();
     }
 
+    // remove o poliogno que está selecionado
     private void removerPoligonoSelecionado()
     {
       //que dizer que esta na criação de um objeto
-      if (pontos.Count > 0)
-      {
+      if (isCriandoPoligono() || objetoSelecionado == null)
         return;
-      }
-
+      
       //se excluiu o objeto, 
       if (mundo.removerObjeto(objetoSelecionado))
       {
@@ -311,15 +307,16 @@ namespace gcgcg
       }
     }
 
+    // muda a primitiva do vertice do poligono aberto - fechado / fechado - aberto
     private void mudarDesenhoPoligono()
     {
       objetoSelecionado.PrimitivaTipo = (objetoSelecionado.PrimitivaTipo == PrimitiveType.LineLoop) ? PrimitiveType.LineStrip : PrimitiveType.LineLoop;
-
     }
 
+    // muda a cor do poligono R - vervelho / G - verde / B - azul
     private void mudaCorPoligono(char c)
     {
-      Shader shader = null;
+      Shader shader;
       switch (c)
       {
         case 'R':
@@ -334,6 +331,10 @@ namespace gcgcg
           shader = _shaderAzul;
           break;
 
+        case 'W':
+          shader = _shaderBranca;
+          break;
+
         default:
           shader = _shaderBranca;
           break;
@@ -343,36 +344,63 @@ namespace gcgcg
 
     }
 
+    // busca o poligono por meio da recursão
     private void selecionaPoligono()
     {
+
+      if (isCriandoPoligono()) 
+        return;
+
       objetoSelecionado = mundo.isDentroBbox(getPosicaoMouse());
     }
 
-    // ajustar aparentemente errado
+    // transaciona o poligono
     private void transacionarPoligono(double x, double y, double z)
     {
       // se não tiver objeto selecionado n faz nada
       if (objetoSelecionado == null)
         return;
 
-      objetoSelecionado.MatrizEscalaXYZ(x, y, z);
+      objetoSelecionado.MatrizTranslacaoXYZ(x, y, z);
     }
 
-    public void escalaPoligono(double x, double y, double z)
+    // escala o bbox so poliogno
+    private void escalaBboxPoligono(double x, double y, double z)
     {
       if (objetoSelecionado == null)
         return;
 
-      Ponto4D centro = new Ponto4D(objetoSelecionado.Bbox().ObterCentro);
-
-      objetoSelecionado.MatrizTranslacaoXYZ(-centro.X, -centro.Y, -centro.Z);
-      objetoSelecionado.MatrizEscalaXYZ(x, y, z);
-      objetoSelecionado.MatrizTranslacaoXYZ(centro.X, centro.Y, centro.Z);
-
-      objetoSelecionado.ObjetoAtualizar();
-
+      objetoSelecionado.MatrizEscalaXYZBBox(x, y, z);
     }
 
+    // escala o poligono
+    private void escalaPoligono(double x, double y, double z)
+    {
+      if (objetoSelecionado == null)
+        return;
+
+      objetoSelecionado.MatrizEscalaXYZ(x, y, z);
+    }
+
+    // rotaciona o bbox do poliogno
+    private void rotacionarBbox(int rotacao)
+    {
+      if (objetoSelecionado == null)
+        return;
+
+      objetoSelecionado.MatrizRotacaoZBBox(rotacao);
+    }
+
+    //rotaciona o poliogno
+    private void rotacionarPoligono(int rotacao)
+    {
+      if (objetoSelecionado == null)
+        return;
+
+      objetoSelecionado.MatrizRotacao(rotacao);
+    }
+
+    // pega a posição atual do mouse
     private Ponto4D getPosicaoMouse()
     {
       int janelaLargura = Size.X;
@@ -381,6 +409,12 @@ namespace gcgcg
       Ponto4D mousePonto = new Ponto4D(MousePosition.X, MousePosition.Y);
 
       return Utilitario.NDC_TelaSRU(janelaLargura, janelaAltura, mousePonto);
+    }
+
+    // verifica se não está criando um objeto
+    private bool isCriandoPoligono()
+    {
+      return pontos.Count != 0 ? true : false;
     }
 
     protected override void OnResize(ResizeEventArgs e)
@@ -474,8 +508,8 @@ namespace gcgcg
 
         var transform = Matrix4.Identity;
         GL.BindVertexArray(_vertexArrayObject_bbox);
-        _shaderVerde.SetMatrix4("transform", transform);
-        _shaderVerde.Use();
+        _shaderAmarela.SetMatrix4("transform", transform);
+        _shaderAmarela.Use();
         GL.DrawArrays(PrimitiveType.LineLoop, 0, (_bbox.Length / 3));
 
 #elif CG_DirectX && !CG_OpenGL
@@ -486,6 +520,6 @@ namespace gcgcg
       }
     }
 #endif    
-
   }
+
 }

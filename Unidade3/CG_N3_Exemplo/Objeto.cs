@@ -364,10 +364,8 @@ namespace gcgcg
     public void removerVerticePoligono(Ponto4D posMouse)
     {
       if (pontosLista.Count == 1)
-      {
         return;
-      }
-
+      
       pontosLista.RemoveAt(ObterIndiceMaisProximo(posMouse));
       ObjetoAtualizar();
     }
@@ -381,7 +379,7 @@ namespace gcgcg
     public Objeto isDentroBbox(Ponto4D pto)
     {
       // verifica se o ponto está dentro da bbox e se o ponto esta dentro do poligono com o scanline
-      if (bBox.Dentro(pto) && paiRef != null && EstaDentroDoPoligono(pto))
+      if (paiRef != null && bBox.Dentro(pto) && EstaDentroDoPoligono(pto))
           return this;
 
       // verifica os filhos recursivamente
