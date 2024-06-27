@@ -22,7 +22,7 @@ namespace gcgcg
     private float primitivaTamanho = 1;
     public float PrimitivaTamanho { get => primitivaTamanho; set => primitivaTamanho = value; }
     private Shader _shaderObjeto = new Shader("Shaders/shader.vert", "Shaders/shaderBranca.frag");
-    public Shader shaderCor { set => _shaderObjeto = value; }
+    public Shader shaderCor {get => _shaderObjeto; set => _shaderObjeto = value;}
 
     // Vértices do objeto TODO: o objeto mundo deveria ter estes atributos abaixo?
     protected List<Ponto4D> pontosLista = new List<Ponto4D>();
@@ -49,11 +49,11 @@ namespace gcgcg
     public void TrocaEixoRotacao(char eixo) => eixoRotacao = eixo;
 
 
-    public Objeto(Objeto _paiRef, ref char _rotulo, Objeto objetoFilho = null)
+    public Objeto(Objeto paiRef, ref char _rotulo, Objeto objetoFilho = null)
     {
-      paiRef = _paiRef;
+      this.paiRef = paiRef;
       rotulo = _rotulo = Utilitario.CharProximo(_rotulo);
-      if (_paiRef != null)
+      if (paiRef != null)
       {
         ObjetoAdicionar(objetoFilho);
       }
@@ -92,9 +92,6 @@ namespace gcgcg
       GL.BindVertexArray(_vertexArrayObject);
       GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
       GL.EnableVertexAttribArray(0);
-
-      bBox.Atualizar(matriz,pontosLista);
-
     }
 
     // FIXME: quando Classe mundo for Singleton não precisa passar _camera pois posso pegar ponteiro do mundo.
@@ -142,6 +139,11 @@ namespace gcgcg
     public Ponto4D PontosId(int id)
     {
       return pontosLista[id];
+    }
+
+    public List<Ponto4D> getListaPontos()
+    {
+      return pontosLista;
     }
 
     public void PontosAdicionar(Ponto4D pto)
@@ -192,7 +194,7 @@ namespace gcgcg
 
     public void GrafocenaImprimir(String idt)
     {
-      Console.WriteLine(idt + rotulo);
+      System.Console.WriteLine(idt + rotulo);
       foreach (var objeto in objetosLista)
       {
         objeto.GrafocenaImprimir(idt + "  ");
@@ -205,7 +207,7 @@ namespace gcgcg
 
     public void MatrizImprimir()
     {
-      Console.WriteLine(matriz);
+      System.Console.WriteLine(matriz);
     }
     public void MatrizAtribuirIdentidade()
     {
@@ -230,18 +232,18 @@ namespace gcgcg
     public void MatrizEscalaXYZBBox(double Sx, double Sy, double Sz)
     {
       matrizGlobal.AtribuirIdentidade();
-      Ponto4D pontoPivo = bBox.ObterCentro;
+      // Ponto4D pontoPivo = bBox.obterCentro;
 
-      matrizTmpTranslacao.AtribuirTranslacao(-pontoPivo.X, -pontoPivo.Y, -pontoPivo.Z); // Inverter sinal
-      matrizGlobal = matrizTmpTranslacao.MultiplicarMatriz(matrizGlobal);
+      // matrizTmpTranslacao.AtribuirTranslacao(-pontoPivo.X, -pontoPivo.Y, -pontoPivo.Z); // Inverter sinal
+      // matrizGlobal = matrizTmpTranslacao.MultiplicarMatriz(matrizGlobal);
 
-      matrizTmpEscala.AtribuirEscala(Sx, Sy, Sz);
-      matrizGlobal = matrizTmpEscala.MultiplicarMatriz(matrizGlobal);
+      // matrizTmpEscala.AtribuirEscala(Sx, Sy, Sz);
+      // matrizGlobal = matrizTmpEscala.MultiplicarMatriz(matrizGlobal);
 
-      matrizTmpTranslacaoInversa.AtribuirTranslacao(pontoPivo.X, pontoPivo.Y, pontoPivo.Z);
-      matrizGlobal = matrizTmpTranslacaoInversa.MultiplicarMatriz(matrizGlobal);
+      // matrizTmpTranslacaoInversa.AtribuirTranslacao(pontoPivo.X, pontoPivo.Y, pontoPivo.Z);
+      // matrizGlobal = matrizTmpTranslacaoInversa.MultiplicarMatriz(matrizGlobal);
 
-      matriz = matriz.MultiplicarMatriz(matrizGlobal);
+      // matriz = matriz.MultiplicarMatriz(matrizGlobal);
 
       ObjetoAtualizar();
     }
@@ -273,18 +275,18 @@ namespace gcgcg
     public void MatrizRotacaoZBBox(double angulo)
     {
       matrizGlobal.AtribuirIdentidade();
-      Ponto4D pontoPivo = bBox.ObterCentro;
+      // Ponto4D pontoPivo = bBox.obterCentro;
 
-      matrizTmpTranslacao.AtribuirTranslacao(-pontoPivo.X, -pontoPivo.Y, -pontoPivo.Z); // Inverter sinal
-      matrizGlobal = matrizTmpTranslacao.MultiplicarMatriz(matrizGlobal);
+      // matrizTmpTranslacao.AtribuirTranslacao(-pontoPivo.X, -pontoPivo.Y, -pontoPivo.Z); // Inverter sinal
+      // matrizGlobal = matrizTmpTranslacao.MultiplicarMatriz(matrizGlobal);
 
-      MatrizRotacaoEixo(angulo);
-      matrizGlobal = matrizTmpRotacao.MultiplicarMatriz(matrizGlobal);
+      // MatrizRotacaoEixo(angulo);
+      // matrizGlobal = matrizTmpRotacao.MultiplicarMatriz(matrizGlobal);
 
-      matrizTmpTranslacaoInversa.AtribuirTranslacao(pontoPivo.X, pontoPivo.Y, pontoPivo.Z);
-      matrizGlobal = matrizTmpTranslacaoInversa.MultiplicarMatriz(matrizGlobal);
+      // matrizTmpTranslacaoInversa.AtribuirTranslacao(pontoPivo.X, pontoPivo.Y, pontoPivo.Z);
+      // matrizGlobal = matrizTmpTranslacaoInversa.MultiplicarMatriz(matrizGlobal);
 
-      matriz = matriz.MultiplicarMatriz(matrizGlobal);
+      // matriz = matriz.MultiplicarMatriz(matrizGlobal);
 
       ObjetoAtualizar();
     }
@@ -304,6 +306,8 @@ namespace gcgcg
 
       GL.DeleteBuffer(_vertexBufferObject);
       GL.DeleteVertexArray(_vertexArrayObject);
+
+      GL.DeleteProgram(_shaderObjeto.Handle);
     }
 
 #if CG_Debug
