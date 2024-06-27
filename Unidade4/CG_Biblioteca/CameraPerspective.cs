@@ -81,5 +81,17 @@ namespace CG_Biblioteca
             _right = Vector3.Normalize(Vector3.Cross(_front, Vector3.UnitY));
             _up = Vector3.Normalize(Vector3.Cross(_right, _front));
         }
+
+        public void AtualizarCamera(float incrementoX, float incrementoY)
+        {
+            // Atualiza o ângulo de Yaw e Pitch da câmera com os incrementos do mouse
+            Yaw += incrementoX;
+            Pitch = incrementoY; // Negativo porque incrementoY é baseado na posição do mouse (para inverter a direção)
+
+            // Limitar o ângulo de pitch para evitar inversões
+            Pitch = MathHelper.Clamp(Pitch, -MathF.PI / 2.0f, MathF.PI / 2.0f);
+
+            UpdateVectors();
+        }
     }
 }
